@@ -321,3 +321,181 @@ if ("serviceWorker" in navigator) {
         // Sem service worker a pagina continua a funcionar, so nao fica em cache.
     });
 }
+
+// ---------------------------------------------------------------------------
+// Fundo estilo "cmatrix"
+// ---------------------------------------------------------------------------
+
+const canvasMatriz = document.getElementById("fundo-matriz");
+const ctxMatriz = canvasMatriz && canvasMatriz.getContext
+    ? canvasMatriz.getContext("2d")
+    : null;
+const botaoMatriz = document.getElementById("botao-matriz");
+const CHAVE_MATRIZ = "pessoas-matriz-v1";
+
+const CARACTERES_MATRIZ =
+    "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン" +
+    "0123456789ABCDEFXYZ<>[]{}=+*#$%&@";
+
+let colunasMatriz = [];
+let animacaoMatriz = null;
+let ultimoPasso = 0;
+let matrizAtiva = false;
+let medidas = { largura: 0, altura: 0, passo: 16 };
+
+function matrizPreferida() {
+    const guardado = localStorage.getItem(CHAVE_MATRIZ);
+
+    if (guardado === "0") {
+        return false;
+    }
+
+    if (guardado === "1") {
+        return true;
+    }
+
+    const reduzir = window.matchMedia
+        ? window.matchMedia("(prefers-reduced-motion: reduce)")
+        : null;
+
+    return !(reduzir && reduzir.matches);
+}
+
+function prepararMatriz() {
+    const largura = window.innerWidth;
+    const altura = window.innerHeight;
+    const densidade = Math.min(window.devicePixelRatio || 1, 2);
+
+    canvasMatriz.width = Math.floor(largura * densidade);
+    canvasMatriz.height = Math.floor(altura * densidade);
+    canvasMatriz.style.width = largura + "px";
+    canvasMatriz.style.height = altura + "px";
+
+    ctxMatriz.setTransform(densidade, 0, 0, densidade, 0, 0);
+
+    const passo = largura < 480 ? 14 : 17;
+    const total = Math.ceil(largura / passo);
+
+    colunasMatriz = Array.from({ length: total }, () => Math.random() * -60);
+    medidas = { largura, altura, passo };
+
+    ctxMatriz.fillStyle = "#050a06";
+    ctxMatriz.fillRect(0, 0, largura, altura);
+}
+
+function desenharMatriz(agora) {
+    if (!matrizAtiva) {
+        return;
+    }
+
+    animacaoMatriz = window.requestAnimationFrame(desenharMatriz);
+
+    // Limita a ~20 frames por segundo: poupa bateria.
+    if (agora - ultimoPasso < 50) {
+        return;
+    }
+
+    ultimoPasso = agora;
+
+    const { largura, altura, passo } = medidas;
+
+    // Rasto: escurece o quadro anterior em vez de apagar.
+    ctxMatriz.fillStyle = "rgba(5, 10, 6, 0.10)";
+    ctxMatriz.fillRect(0, 0, largura, altura);
+
+    ctxMatriz.font = passo + "px monospace";
+    ctxMatriz.textBaseline = "top";
+
+    for (let i = 0; i < colunasMatriz.length; i++) {
+        const x = i * passo;
+        const y = colunasMatriz[i] * passo;
+
+        if (y > -passo) {
+            const brilho = Math.random() < 0.07;
+            const caractere =
+                CARACTERES_MATRIZ[Math.floor(Math.random() * CARACTERES_MATRIZ.length)];
+
+            ctxMatriz.fillStyle = brilho ? "#eafff1" : "#00e676";
+            ctxMatriz.globalAlpha = brilho ? 0.95 : 0.45;
+            ctxMatriz.fillText(caractere, x, y);
+            ctxMatriz.globalAlpha = 1;
+        }
+
+        colunasMatriz[i]++;
+
+        if (y > altura && Math.random() > 0.975) {
+            colunasMatriz[i] = 0;
+        }
+    }
+}
+
+function ligarMatriz() {
+    if (!ctxMatriz) {
+        return;
+    }
+
+    prepararMatriz();
+    matrizAtiva = true;
+    ultimoPasso = 0;
+    animacaoMatriz = window.requestAnimationFrame(desenharMatriz);
+
+    botaoMatriz.setAttribute("aria-pressed", "true");
+    botaoMatriz.textContent = "MATRIX";
+}
+
+function desligarMatriz() {
+    matrizAtiva = false;
+
+    if (animacaoMatriz) {
+        window.cancelAnimationFrame(animacaoMatriz);
+        animacaoMatriz = null;
+    }
+
+    if (ctxMatriz) {
+        ctxMatriz.clearRect(0, 0, medidas.largura, medidas.altura);
+    }
+
+    botaoMatriz.setAttribute("aria-pressed", "false");
+    botaoMatriz.textContent = "MATRIX OFF";
+}
+
+if (ctxMatriz && botaoMatriz) {
+    if (matrizPreferida()) {
+        ligarMatriz();
+    } else {
+        desligarMatriz();
+    }
+
+    botaoMatriz.addEventListener("click", () => {
+        if (matrizAtiva) {
+            desligarMatriz();
+            localStorage.setItem(CHAVE_MATRIZ, "0");
+        } else {
+            ligarMatriz();
+            localStorage.setItem(CHAVE_MATRIZ, "1");
+        }
+    });
+
+    let redimensionar = null;
+
+    window.addEventListener("resize", () => {
+        clearTimeout(redimensionar);
+        redimensionar = setTimeout(() => {
+            if (matrizAtiva) {
+                prepararMatriz();
+            }
+        }, 250);
+    });
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+            if (animacaoMatriz) {
+                window.cancelAnimationFrame(animacaoMatriz);
+                animacaoMatriz = null;
+            }
+        } else if (matrizAtiva) {
+            ultimoPasso = 0;
+            animacaoMatriz = window.requestAnimationFrame(desenharMatriz);
+        }
+    });
+}

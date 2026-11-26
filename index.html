@@ -5,113 +5,210 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pessoas</title>
 <link rel="manifest" href="./manifest.webmanifest">
-<meta name="theme-color" content="#1877f2">
+<meta name="theme-color" content="#050a06">
 <link rel="icon" href="./icon-192.png">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Pessoas">
 <style>
+    :root {
+        --fundo: #050a06;
+        --cartao: rgba(7, 20, 12, .90);
+        --borda: rgba(0, 255, 102, .22);
+        --texto: #d8ffe4;
+        --fraco: #7fae8d;
+        --principal: #00e676;
+        --principal-texto: #04120a;
+        --secundario: #16241a;
+        --secundario-texto: #bdf7cf;
+        --perigo: #ff4b3e;
+        --perigo-fundo: rgba(255, 75, 62, .14);
+    }
     * { box-sizing: border-box; }
     body {
-        font-family: system-ui, sans-serif;
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
         margin: 0;
         padding: 16px;
-        background: #f0f2f5;
-        color: #1c1e21;
+        background: var(--fundo);
+        color: var(--texto);
+        min-height: 100vh;
     }
-    h1 { font-size: 22px; margin: 0; }
-    .topo { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
-    .contador { font-size: 13px; color: #606770; }
+    #fundo-matriz {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        display: block;
+        pointer-events: none;
+    }
+    body > *:not(#fundo-matriz) {
+        position: relative;
+        z-index: 1;
+    }
+    h1 { font-size: 22px; margin: 0; letter-spacing: .04em; }
+    .topo {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    .contador { font-size: 12px; color: var(--fraco); }
+    .botao-matriz {
+        width: auto;
+        padding: 7px 11px;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 999px;
+        border: 1px solid var(--borda);
+        background: rgba(0, 255, 102, .10);
+        color: var(--principal);
+        cursor: pointer;
+    }
+    .botao-matriz[aria-pressed="false"] {
+        background: rgba(255, 255, 255, .05);
+        color: var(--fraco);
+        border-color: rgba(255, 255, 255, .12);
+    }
     .cartao {
-        background: #fff;
-        border-radius: 10px;
+        background: var(--cartao);
+        border: 1px solid var(--borda);
+        border-radius: 12px;
         padding: 16px;
         margin-bottom: 16px;
-        box-shadow: 0 1px 3px rgba(0,0,0,.12);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
     }
-    .cartao h2 { font-size: 16px; margin: 0 0 12px; color: #444; }
-    label { display: block; font-size: 13px; margin-bottom: 4px; color: #555; }
+    .cartao h2 {
+        font-size: 14px;
+        margin: 0 0 12px;
+        color: var(--principal);
+        letter-spacing: .06em;
+        text-transform: uppercase;
+    }
+    label { display: block; font-size: 12px; margin-bottom: 4px; color: var(--fraco); }
     input {
         width: 100%;
         padding: 10px;
         font-size: 16px;
-        border: 1px solid #ccc;
+        font-family: inherit;
+        border: 1px solid var(--borda);
         border-radius: 8px;
         margin-bottom: 12px;
-        background: #fff;
-        color: inherit;
+        background: rgba(0, 0, 0, .45);
+        color: var(--texto);
     }
-    input:focus { outline: 2px solid #1877f2; outline-offset: -1px; }
+    input::placeholder { color: #4f7a5c; }
+    input:focus { outline: 1px solid var(--principal); outline-offset: 0; }
     button {
         width: 100%;
         padding: 12px;
-        font-size: 16px;
+        font-size: 15px;
+        font-family: inherit;
         border: 0;
         border-radius: 8px;
-        background: #1877f2;
-        color: #fff;
-        font-weight: 600;
+        background: var(--principal);
+        color: var(--principal-texto);
+        font-weight: 700;
         cursor: pointer;
+        letter-spacing: .02em;
     }
-    button:active { background: #0d5bbd; }
-    button.perigo { background: #d93025; }
-    button.perigo:active { background: #a31515; }
-    button.secundario { background: #e4e6eb; color: #1c1e21; font-weight: 500; }
-    button.secundario:active { background: #d8dadf; }
+    button:active { background: #00b85e; }
+    button.perigo { background: var(--perigo); color: #fff; }
+    button.perigo:active { background: #c9382e; }
+    button.secundario {
+        background: var(--secundario);
+        color: var(--secundario-texto);
+        border: 1px solid var(--borda);
+        font-weight: 600;
+    }
+    button.secundario:active { background: #1f3326; }
     .linha-botoes { display: flex; gap: 8px; }
     .linha-botoes button { flex: 1; }
     .busca { display: flex; gap: 8px; }
     .busca input { margin: 0; }
-    .busca button { width: auto; padding: 10px 16px; background: #606770; }
+    .busca button { width: auto; padding: 10px 16px; }
     .aviso {
         padding: 10px 12px;
         border-radius: 8px;
         margin-bottom: 16px;
-        font-size: 14px;
+        font-size: 13px;
         display: none;
+        border: 1px solid transparent;
     }
     .aviso.visivel { display: block; }
-    .aviso.ok { background: #e3f6e5; color: #17692a; }
-    .aviso.erro { background: #fde8e8; color: #a11515; }
+    .aviso.ok {
+        background: rgba(0, 230, 118, .12);
+        color: #7dffb0;
+        border-color: rgba(0, 230, 118, .35);
+    }
+    .aviso.erro {
+        background: var(--perigo-fundo);
+        color: #ff9d94;
+        border-color: rgba(255, 75, 62, .4);
+    }
     ul.lista { list-style: none; margin: 0; padding: 0; }
     ul.lista li {
-        background: #fff;
-        border-radius: 10px;
+        background: var(--cartao);
+        border: 1px solid var(--borda);
+        border-radius: 12px;
         padding: 12px 14px;
         margin-bottom: 8px;
-        box-shadow: 0 1px 3px rgba(0,0,0,.10);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, .4);
         display: flex;
         align-items: center;
         gap: 10px;
     }
     .dados { flex: 1; min-width: 0; }
     .nome { font-weight: 600; word-break: break-word; }
-    .detalhe { font-size: 13px; color: #8a8d91; }
+    .detalhe { font-size: 12px; color: var(--fraco); margin-top: 2px; }
     .acoes { display: flex; gap: 6px; flex-shrink: 0; }
     .mini {
         display: inline-block;
         padding: 7px 11px;
         border-radius: 6px;
-        font-size: 13px;
+        font-size: 12px;
+        font-family: inherit;
         text-decoration: none;
-        background: #e4e6eb;
-        color: #1c1e21;
-        border: 0;
+        background: rgba(0, 255, 102, .10);
+        color: #a8ffc8;
+        border: 1px solid rgba(0, 255, 102, .28);
         width: auto;
         cursor: pointer;
+        font-weight: 500;
     }
-    .mini.perigo { background: #fde8e8; color: #a11515; }
-    .vazio { text-align: center; color: #8a8d91; padding: 28px 12px; background: #fff; border-radius: 10px; }
-    .rodape { font-size: 12px; color: #8a8d91; text-align: center; margin-top: 8px; }
+    .mini.perigo {
+        background: var(--perigo-fundo);
+        color: #ff9d94;
+        border-color: rgba(255, 75, 62, .35);
+    }
+    .vazio {
+        text-align: center;
+        color: var(--fraco);
+        padding: 28px 12px;
+        background: var(--cartao);
+        border: 1px dashed var(--borda);
+        border-radius: 12px;
+    }
+    .rodape { font-size: 11px; color: #4f7a5c; text-align: center; margin-top: 8px; }
     .oculto { display: none !important; }
+
+    @media (prefers-reduced-motion: reduce) {
+        #fundo-matriz { display: none; }
+    }
 </style>
 </head>
 <body>
 
+<canvas id="fundo-matriz" aria-hidden="true"></canvas>
+
 <div class="topo">
     <h1>Pessoas</h1>
-    <span class="contador" id="contador"></span>
+    <div style="display:flex;align-items:center;gap:10px">
+        <span class="contador" id="contador"></span>
+        <button type="button" class="botao-matriz" id="botao-matriz" aria-pressed="true">MATRIX</button>
+    </div>
 </div>
 
 <div class="aviso" id="aviso"></div>

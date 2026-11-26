@@ -2,7 +2,7 @@
 // Como os dados vivem no localStorage, basta guardar o esqueleto da app
 // para ela abrir mesmo sem internet.
 
-const CACHE = "pessoas-pages-v1";
+const CACHE = "pessoas-pages-v2";
 
 const ESSENCIAIS = [
     "./",
