@@ -11,10 +11,10 @@ from PIL import Image, ImageDraw
 
 PASTA = Path(__file__).resolve().parent
 
-FUNDO = (5, 10, 6, 255)
-VERDE = (0, 230, 118, 255)
-VERDE_FRACO = (0, 230, 118, 60)
-BRILHO = (234, 255, 241, 255)
+FUNDO = (5, 5, 6, 255)
+VERMELHO = (255, 43, 43, 255)
+VERMELHO_FRACO = (255, 43, 43, 55)
+BRILHO = (255, 217, 217, 255)
 
 CARACTERES = "01<>[]{}=+*#"
 
@@ -34,7 +34,7 @@ def desenhar(tamanho: int) -> Image.Image:
             largura_traco = max(2, coluna_largura - 7)
             desenho.rectangle(
                 [x + 3, y, x + 3 + largura_traco, y + altura],
-                fill=VERDE_FRACO,
+                fill=VERMELHO_FRACO,
             )
 
     # Moldura
@@ -42,7 +42,7 @@ def desenhar(tamanho: int) -> Image.Image:
     desenho.rounded_rectangle(
         [margem, margem, tamanho - margem, tamanho - margem],
         radius=int(70 * escala),
-        outline=VERDE,
+        outline=VERMELHO,
         width=max(2, int(12 * escala)),
     )
 
@@ -52,7 +52,7 @@ def desenhar(tamanho: int) -> Image.Image:
     centro_y = int(190 * escala)
     desenho.ellipse(
         [centro_x - raio, centro_y - raio, centro_x + raio, centro_y + raio],
-        fill=VERDE,
+        fill=VERMELHO,
     )
 
     largura = int(190 * escala)
@@ -61,7 +61,7 @@ def desenhar(tamanho: int) -> Image.Image:
     desenho.rounded_rectangle(
         [centro_x - largura // 2, topo, centro_x + largura // 2, topo + altura],
         radius=int(58 * escala),
-        fill=VERDE,
+        fill=VERMELHO,
     )
 
     # Ponto de brilho na cabeca

@@ -323,7 +323,7 @@ if ("serviceWorker" in navigator) {
 }
 
 // ---------------------------------------------------------------------------
-// Fundo estilo "cmatrix"
+// Fundo estilo "cmatrix" (colunas com pontas redondas)
 // ---------------------------------------------------------------------------
 
 const canvasMatriz = document.getElementById("fundo-matriz");
@@ -333,9 +333,7 @@ const ctxMatriz = canvasMatriz && canvasMatriz.getContext
 const botaoMatriz = document.getElementById("botao-matriz");
 const CHAVE_MATRIZ = "pessoas-matriz-v1";
 
-const CARACTERES_MATRIZ =
-    "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン" +
-    "0123456789ABCDEFXYZ<>[]{}=+*#$%&@";
+const GLIFOS = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン0123456789";
 
 let colunasMatriz = [];
 let animacaoMatriz = null;
@@ -361,6 +359,24 @@ function matrizPreferida() {
     return !(reduzir && reduzir.matches);
 }
 
+function novoGlifo() {
+    return GLIFOS[Math.floor(Math.random() * GLIFOS.length)];
+}
+
+function criarColuna(x, abaixoDoEcra) {
+    const altura = medidas.altura || 800;
+
+    return {
+        x,
+        y: abaixoDoEcra
+            ? -Math.random() * 240
+            : Math.random() * altura,
+        comprimento: 50 + Math.random() * 140,
+        velocidade: 1.1 + Math.random() * 3.0,
+        glifo: novoGlifo(),
+    };
+}
+
 function prepararMatriz() {
     const largura = window.innerWidth;
     const altura = window.innerHeight;
@@ -373,13 +389,16 @@ function prepararMatriz() {
 
     ctxMatriz.setTransform(densidade, 0, 0, densidade, 0, 0);
 
-    const passo = largura < 480 ? 14 : 17;
+    const passo = largura < 480 ? 15 : 18;
     const total = Math.ceil(largura / passo);
 
-    colunasMatriz = Array.from({ length: total }, () => Math.random() * -60);
     medidas = { largura, altura, passo };
+    colunasMatriz = Array.from(
+        { length: total },
+        (_, indice) => criarColuna(indice * passo + passo / 2, false)
+    );
 
-    ctxMatriz.fillStyle = "#050a06";
+    ctxMatriz.fillStyle = "#050506";
     ctxMatriz.fillRect(0, 0, largura, altura);
 }
 
@@ -390,7 +409,7 @@ function desenharMatriz(agora) {
 
     animacaoMatriz = window.requestAnimationFrame(desenharMatriz);
 
-    // Limita a ~20 frames por segundo: poupa bateria.
+    // ~20 frames por segundo: poupa bateria.
     if (agora - ultimoPasso < 50) {
         return;
     }
@@ -400,31 +419,42 @@ function desenharMatriz(agora) {
     const { largura, altura, passo } = medidas;
 
     // Rasto: escurece o quadro anterior em vez de apagar.
-    ctxMatriz.fillStyle = "rgba(5, 10, 6, 0.10)";
+    ctxMatriz.fillStyle = "rgba(5, 5, 6, 0.16)";
     ctxMatriz.fillRect(0, 0, largura, altura);
 
+    ctxMatriz.lineCap = "round";
+    ctxMatriz.textAlign = "center";
+    ctxMatriz.textBaseline = "middle";
     ctxMatriz.font = passo + "px monospace";
-    ctxMatriz.textBaseline = "top";
 
-    for (let i = 0; i < colunasMatriz.length; i++) {
-        const x = i * passo;
-        const y = colunasMatriz[i] * passo;
+    for (const coluna of colunasMatriz) {
+        const inicio = coluna.y - coluna.comprimento;
 
-        if (y > -passo) {
-            const brilho = Math.random() < 0.07;
-            const caractere =
-                CARACTERES_MATRIZ[Math.floor(Math.random() * CARACTERES_MATRIZ.length)];
+        // Cauda com brilho no fim e pontas redondas.
+        const gradiente = ctxMatriz.createLinearGradient(0, inicio, 0, coluna.y);
+        gradiente.addColorStop(0, "rgba(255, 43, 43, 0)");
+        gradiente.addColorStop(0.7, "rgba(255, 43, 43, 0.30)");
+        gradiente.addColorStop(1, "rgba(255, 43, 43, 0.85)");
 
-            ctxMatriz.fillStyle = brilho ? "#eafff1" : "#00e676";
-            ctxMatriz.globalAlpha = brilho ? 0.95 : 0.45;
-            ctxMatriz.fillText(caractere, x, y);
-            ctxMatriz.globalAlpha = 1;
-        }
+        ctxMatriz.strokeStyle = gradiente;
+        ctxMatriz.lineWidth = Math.max(1.5, passo * 0.20);
+        ctxMatriz.beginPath();
+        ctxMatriz.moveTo(coluna.x, inicio);
+        ctxMatriz.lineTo(coluna.x, coluna.y);
+        ctxMatriz.stroke();
 
-        colunasMatriz[i]++;
+        // Cabeca: glifo claro com halo.
+        ctxMatriz.fillStyle = "#ffd9d9";
+        ctxMatriz.fillText(coluna.glifo, coluna.x, coluna.y);
 
-        if (y > altura && Math.random() > 0.975) {
-            colunasMatriz[i] = 0;
+        coluna.y += coluna.velocidade;
+
+        if (inicio > altura + 40) {
+            const nova = criarColuna(coluna.x, true);
+            coluna.y = nova.y;
+            coluna.comprimento = nova.comprimento;
+            coluna.velocidade = nova.velocidade;
+            coluna.glifo = novoGlifo();
         }
     }
 }
@@ -499,3 +529,49 @@ if (ctxMatriz && botaoMatriz) {
         }
     });
 }
+
+// ---------------------------------------------------------------------------
+// Efeito de toque nos botoes
+// ---------------------------------------------------------------------------
+
+function criarOnda(evento) {
+    const alvo = evento.target;
+
+    if (!alvo || typeof alvo.closest !== "function") {
+        return;
+    }
+
+    const botao = alvo.closest("button");
+
+    if (!botao || botao.disabled) {
+        return;
+    }
+
+    const caixa = botao.getBoundingClientRect
+        ? botao.getBoundingClientRect()
+        : { left: 0, top: 0, width: 0, height: 0 };
+
+    const x = (typeof evento.clientX === "number" ? evento.clientX : caixa.left + caixa.width / 2) - caixa.left;
+    const y = (typeof evento.clientY === "number" ? evento.clientY : caixa.top + caixa.height / 2) - caixa.top;
+    const tamanho = Math.max(caixa.width, caixa.height, 44) * 2.4;
+
+    const onda = document.createElement("span");
+    onda.className = "ripple";
+    onda.style.width = tamanho + "px";
+    onda.style.height = tamanho + "px";
+    onda.style.left = x + "px";
+    onda.style.top = y + "px";
+
+    botao.appendChild(onda);
+
+    const remover = () => {
+        if (onda.parentNode) {
+            onda.parentNode.removeChild(onda);
+        }
+    };
+
+    onda.addEventListener("animationend", remover, { once: true });
+    setTimeout(remover, 700);
+}
+
+document.addEventListener("click", criarOnda);
