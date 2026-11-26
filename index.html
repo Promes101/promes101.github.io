@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pessoas</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#1877f2">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pessoas">
+<style>
+    * { box-sizing: border-box; }
+    body {
+        font-family: system-ui, sans-serif;
+        margin: 0;
+        padding: 16px;
+        background: #f0f2f5;
+        color: #1c1e21;
+    }
+    h1 { font-size: 22px; margin: 0; }
+    .topo { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+    .contador { font-size: 13px; color: #606770; }
+    .cartao {
+        background: #fff;
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.12);
+    }
+    .cartao h2 { font-size: 16px; margin: 0 0 12px; color: #444; }
+    label { display: block; font-size: 13px; margin-bottom: 4px; color: #555; }
+    input {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        background: #fff;
+        color: inherit;
+    }
+    input:focus { outline: 2px solid #1877f2; outline-offset: -1px; }
+    button {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+        border: 0;
+        border-radius: 8px;
+        background: #1877f2;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    button:active { background: #0d5bbd; }
+    button.perigo { background: #d93025; }
+    button.perigo:active { background: #a31515; }
+    button.secundario { background: #e4e6eb; color: #1c1e21; font-weight: 500; }
+    button.secundario:active { background: #d8dadf; }
+    .linha-botoes { display: flex; gap: 8px; }
+    .linha-botoes button { flex: 1; }
+    .busca { display: flex; gap: 8px; }
+    .busca input { margin: 0; }
+    .busca button { width: auto; padding: 10px 16px; background: #606770; }
+    .aviso {
+        padding: 10px 12px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        font-size: 14px;
+        display: none;
+    }
+    .aviso.visivel { display: block; }
+    .aviso.ok { background: #e3f6e5; color: #17692a; }
+    .aviso.erro { background: #fde8e8; color: #a11515; }
+    ul.lista { list-style: none; margin: 0; padding: 0; }
+    ul.lista li {
+        background: #fff;
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin-bottom: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.10);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .dados { flex: 1; min-width: 0; }
+    .nome { font-weight: 600; word-break: break-word; }
+    .detalhe { font-size: 13px; color: #8a8d91; }
+    .acoes { display: flex; gap: 6px; flex-shrink: 0; }
+    .mini {
+        display: inline-block;
+        padding: 7px 11px;
+        border-radius: 6px;
+        font-size: 13px;
+        text-decoration: none;
+        background: #e4e6eb;
+        color: #1c1e21;
+        border: 0;
+        width: auto;
+        cursor: pointer;
+    }
+    .mini.perigo { background: #fde8e8; color: #a11515; }
+    .vazio { text-align: center; color: #8a8d91; padding: 28px 12px; background: #fff; border-radius: 10px; }
+    .rodape { font-size: 12px; color: #8a8d91; text-align: center; margin-top: 8px; }
+    .oculto { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="topo">
+    <h1>Pessoas</h1>
+    <span class="contador" id="contador"></span>
+</div>
+
+<div class="aviso" id="aviso"></div>
+
+<div class="cartao" id="cartao-form">
+    <h2 id="titulo-form">Adicionar pessoa</h2>
+    <form id="form">
+        <input type="hidden" id="campo-id">
+        <label for="campo-nome">Nome</label>
+        <input id="campo-nome" type="text" maxlength="80" required autocomplete="off">
+        <label for="campo-idade">Idade</label>
+        <input id="campo-idade" type="number" min="0" max="130" required>
+        <div class="linha-botoes">
+            <button type="submit" id="botao-guardar">Adicionar</button>
+            <button type="button" class="secundario oculto" id="botao-cancelar">Cancelar</button>
+        </div>
+    </form>
+</div>
+
+<div class="cartao">
+    <h2>Pesquisar</h2>
+    <div class="busca">
+        <input id="campo-busca" type="search" placeholder="Parte do nome" autocomplete="off">
+        <button type="button" class="secundario" id="botao-limpar">Limpar</button>
+    </div>
+</div>
+
+<ul class="lista" id="lista"></ul>
+
+<div class="cartao">
+    <h2>Cópia de segurança</h2>
+    <div class="linha-botoes">
+        <button type="button" class="secundario" id="botao-exportar">Exportar</button>
+        <button type="button" class="secundario" id="botao-importar">Importar</button>
+    </div>
+    <input type="file" id="campo-ficheiro" accept=".json,application/json" class="oculto">
+</div>
+
+<p class="rodape">Os dados ficam guardados neste navegador.</p>
+
+<script src="./app.js"></script>
+</body>
+</html>
