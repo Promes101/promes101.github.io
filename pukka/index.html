@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PUKKA - Organizador</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#050506">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PUKKA">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<canvas id="fundo-matriz" aria-hidden="true"></canvas>
+
+<header class="topo">
+    <button type="button" id="voltar" class="icone oculto" aria-label="Voltar">&#8592;</button>
+    <h1 data-text="PUKKA">PUKKA</h1>
+    <button type="button" class="botao-matriz" id="botao-matriz" aria-pressed="true">MATRIX</button>
+</header>
+
+<main id="app"></main>
+
+<p class="rodape">[ sistema online · dados neste navegador ]<span class="cursor">&#9611;</span></p>
+
+<script src="./app.js"></script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 // Como os dados vivem no localStorage, basta guardar o esqueleto da app
 // para ela abrir mesmo sem internet.
 
-const CACHE = "pessoas-pages-v3";
+const CACHE = "pessoas-pages-v4";
 
 const ESSENCIAIS = [
     "./",
@@ -46,6 +46,13 @@ self.addEventListener("fetch", (evento) => {
 
     // Abrir a app: tenta a rede (para apanhar actualizacoes) e cai no cache.
     if (pedido.mode === "navigate") {
+        const caminhoNav = new URL(pedido.url).pathname;
+
+        // Esta app vive na raiz; /pukka/ tem o seu proprio service worker.
+        if (caminhoNav !== "/" && caminhoNav !== "/index.html") {
+            return;
+        }
+
         evento.respondWith(
             fetch(pedido)
                 .then((resposta) => {
@@ -60,7 +67,7 @@ self.addEventListener("fetch", (evento) => {
 
     const caminho = new URL(pedido.url).pathname;
 
-    if (caminho.includes("/icon-") || caminho.endsWith("manifest.webmanifest")) {
+    if (caminho.startsWith("/icon-") || caminho === "/manifest.webmanifest") {
         evento.respondWith(
             caches.match(pedido).then((resposta) => resposta || fetch(pedido))
         );
